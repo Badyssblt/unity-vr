@@ -69,6 +69,11 @@ public class WeaponController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI maxAmmoText;
     [SerializeField] private GameObject ammoParent;
 
+    [Header("VR Reload System")]
+    [SerializeField] private bool useVRReload = true;
+    [SerializeField] private MagazineSocket magazineSocket; // Socket pour insérer le chargeur
+    [SerializeField] private KeyCode ejectMagazineKey = KeyCode.E;
+
     private float nextFireTime;
     private bool isReloading;
     private XRBaseControllerInteractor primaryInteractor;   // Main principale (grip)
@@ -118,6 +123,14 @@ public class WeaponController : MonoBehaviour
             grabInteractable.selectEntered.AddListener(OnGrabbed);
             grabInteractable.selectExited.AddListener(OnReleased);
         }
+
+        // Subscribe to magazine socket events for VR reload
+        if (useVRReload && magazineSocket != null)
+        {
+            magazineSocket.onMagazineInserted.AddListener(OnMagazineInserted);
+            magazineSocket.onMagazineEjected.AddListener(OnMagazineEjected);
+            Debug.Log("✅ MagazineSocket connecté au WeaponController");
+        }
     }
 
     void OnGrabbed(SelectEnterEventArgs args)
@@ -154,6 +167,13 @@ public class WeaponController : MonoBehaviour
         }
     }
 
+    public void UpdateAmmoUI()
+    {
+         currentAmmoText.text = currentAmmo.ToString();
+         maxAmmoText.text = maxAmmo.ToString();
+        
+    }
+
     void OnReleased(SelectExitEventArgs args)
     {
         XRBaseControllerInteractor interactor = args.interactorObject as XRBaseControllerInteractor;
@@ -182,6 +202,33 @@ public class WeaponController : MonoBehaviour
         {
             ammoParent.SetActive(false);
         }
+    }
+
+    void OnMagazineInserted(GameObject magazine)
+    {
+        Debug.Log($"✅ Chargeur inséré: {magazine.name} - Rechargement automatique !");
+
+        // Recharger l'arme instantanément
+        currentAmmo = maxAmmo;
+        isReloading = false;
+
+        // Jouer le son de rechargement
+        PlaySound(reloadSound);
+
+        // Mettre à jour l'UI
+        UpdateAmmoUI();
+
+        // Feedback haptique
+        TriggerHaptic(0.2f, 0.1f);
+    }
+
+    void OnMagazineEjected()
+    {
+        Debug.Log("❌ Chargeur éjecté !");
+
+        // Optionnel : vider l'arme quand le chargeur est retiré
+        // currentAmmo = 0;
+        // UpdateAmmoUI();
     }
 
     void Update()
@@ -446,6 +493,8 @@ public class WeaponController : MonoBehaviour
         
     }
 
+
+
     void UpdateLaserSight()
     {
         if (laserSight == null) return;
@@ -515,6 +564,13 @@ public class WeaponController : MonoBehaviour
         {
             grabInteractable.selectEntered.RemoveListener(OnGrabbed);
             grabInteractable.selectExited.RemoveListener(OnReleased);
+        }
+
+        // Se désabonner du magazine socket
+        if (magazineSocket != null)
+        {
+            magazineSocket.onMagazineInserted.RemoveListener(OnMagazineInserted);
+            magazineSocket.onMagazineEjected.RemoveListener(OnMagazineEjected);
         }
     }
 
