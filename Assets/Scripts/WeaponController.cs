@@ -441,7 +441,6 @@ public class WeaponController : MonoBehaviour
         {
             // Ligne verte jusqu'au point d'impact
             Debug.DrawLine(rayOrigin, hit.point, Color.green, 2f);
-            Debug.Log($"🎯 TOUCHE! {hit.collider.name} (Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}) à {hit.distance:F2}m");
 
             // NOUVEAU SYSTÈME DE DÉGÂTS avec Hitbox
             // Priorité 1 : Chercher DamageableHitbox (pour headshots)
@@ -673,6 +672,7 @@ public class WeaponController : MonoBehaviour
     public int GetCurrentAmmo() => currentAmmo;
     public int GetMaxAmmo() => maxAmmo;
     public bool IsReloading() => isReloading;
+    public Transform GetFirePoint() => firePoint;
 
     // Visualisation du raycast dans la Scene view
     #if UNITY_EDITOR

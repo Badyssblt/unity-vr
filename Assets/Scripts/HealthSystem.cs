@@ -63,12 +63,7 @@ public class HealthSystem : MonoBehaviour
             return;
         }
 
-        // Ne pas prendre de dégâts de sa propre équipe (friendly fire désactivé)
-        if (!string.IsNullOrEmpty(attackerTeam) && attackerTeam == teamTag)
-        {
-            if (showDebugLogs) Debug.Log($"⚠️ Friendly fire: {attackerTeam} attaque {teamTag}");
-            return;
-        }
+        // Système de team désactivé - tout le monde peut se tirer dessus
 
         // Appliquer les dégâts
         currentHealth -= damage;
