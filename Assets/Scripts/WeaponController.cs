@@ -76,6 +76,7 @@ public class WeaponController : MonoBehaviour
 
     private float nextFireTime;
     private bool isReloading;
+    private bool hasMagazine = false; // Track si un magazine est inséré (true par défaut)
     private XRBaseControllerInteractor primaryInteractor;   // Main principale (grip)
     private XRBaseControllerInteractor secondaryInteractor; // Main secondaire (foregrip)
     private List<XRBaseControllerInteractor> interactors = new List<XRBaseControllerInteractor>();
@@ -208,6 +209,9 @@ public class WeaponController : MonoBehaviour
     {
         Debug.Log($"✅ Chargeur inséré: {magazine.name} - Rechargement automatique !");
 
+        // Marquer que le magazine est présent
+        hasMagazine = true;
+
         // Recharger l'arme instantanément
         currentAmmo = maxAmmo;
         isReloading = false;
@@ -226,9 +230,15 @@ public class WeaponController : MonoBehaviour
     {
         Debug.Log("❌ Chargeur éjecté !");
 
-        // Optionnel : vider l'arme quand le chargeur est retiré
-        // currentAmmo = 0;
-        // UpdateAmmoUI();
+        // Marquer que le magazine n'est plus présent
+        hasMagazine = false;
+
+        // Vider l'arme quand le chargeur est retiré
+        currentAmmo = 0;
+        UpdateAmmoUI();
+
+        // Feedback haptique
+        TriggerHaptic(0.1f, 0.05f);
     }
 
     void Update()
@@ -236,6 +246,7 @@ public class WeaponController : MonoBehaviour
         // Only allow shooting when weapon is grabbed
         if (grabInteractable != null && grabInteractable.isSelected)
         {
+
             // Vérifier les conditions de tir
             if (CanShoot() && Time.time >= nextFireTime && !isReloading)
             {
@@ -249,6 +260,13 @@ public class WeaponController : MonoBehaviour
 
     bool CanShoot()
     {
+        // Vérifier si un magazine est inséré (si VR reload est activé)
+        if (useVRReload && !hasMagazine)
+        {
+            Debug.LogWarning("⚠️ Aucun chargeur dans l'arme!");
+            return false;
+        }
+
         // Vérifier si les deux mains sont requises
         if (requireTwoHands)
         {
@@ -295,7 +313,14 @@ public class WeaponController : MonoBehaviour
         }
         else
         {
-            // Mode normal : un seul trigger suffit
+            // Mode normal : utiliser shootAction directement
+            if (shootAction.action != null)
+            {
+                float triggerValue = shootAction.action.ReadValue<float>();
+                return triggerValue > 0.1f; // Trigger pressé à plus de 10%
+            }
+
+            // Fallback si shootAction n'est pas configuré
             return IsTriggerPressed(primaryInteractor);
         }
     }
@@ -332,7 +357,7 @@ public class WeaponController : MonoBehaviour
         if (currentAmmo <= 0)
         {
             PlaySound(emptySound);
-            TriggerHaptic(0.1f, 0.05f); // Light haptic for empty
+            TriggerHaptic(0.1f, 0.05f);
             return;
         }
 
