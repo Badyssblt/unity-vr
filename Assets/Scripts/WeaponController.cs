@@ -516,11 +516,24 @@ public class WeaponController : MonoBehaviour
     {
         if (bulletPrefab != null && firePoint != null)
         {
-            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+            // Obtenir la direction de tir configurée
+            Vector3 shootDir = GetShootDirection();
+
+            // Créer le projectile
+            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.LookRotation(shootDir));
+
+            // Initialiser le projectile avec les dégâts et l'équipe
+            BulletProjectile projectile = bullet.GetComponent<BulletProjectile>();
+            if (projectile != null)
+            {
+                projectile.Initialize(damage, ownerTeam);
+            }
+
+            // Appliquer la vélocité
             Rigidbody rb = bullet.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                rb.velocity = firePoint.forward * bulletSpeed;
+                rb.velocity = shootDir * bulletSpeed;
             }
         }
     }
