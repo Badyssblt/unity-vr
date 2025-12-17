@@ -15,6 +15,8 @@ public class WeaponController : MonoBehaviour
     [SerializeField] private int currentAmmo;
     [SerializeField] private float fireRate = 0.5f;
     [SerializeField] private float reloadTime = 2f;
+    [SerializeField] private float damage = 25f; // Dégâts de base de l'arme
+    [SerializeField] private string ownerTeam = "Player"; // "Player" ou "Enemy"
 
     [Header("Raycast Settings")]
     [SerializeField] private bool useRaycast = true;
@@ -77,6 +79,7 @@ public class WeaponController : MonoBehaviour
     private float nextFireTime;
     private bool isReloading;
     private bool hasMagazine = false; // Track si un magazine est inséré (true par défaut)
+    private float nextEmptySoundTime = 0f; // Temps avant de pouvoir rejouer le son empty
     private XRBaseControllerInteractor primaryInteractor;   // Main principale (grip)
     private XRBaseControllerInteractor secondaryInteractor; // Main secondaire (foregrip)
     private List<XRBaseControllerInteractor> interactors = new List<XRBaseControllerInteractor>();
@@ -254,8 +257,8 @@ public class WeaponController : MonoBehaviour
             }
         }
 
-        // Update laser sight
-        UpdateLaserSight();
+        // Ne pas afficher le laser en continu (seulement lors du tir)
+        // UpdateLaserSight();
     }
 
     bool CanShoot()
@@ -356,14 +359,22 @@ public class WeaponController : MonoBehaviour
     {
         if (currentAmmo <= 0)
         {
-            PlaySound(emptySound);
-            TriggerHaptic(0.1f, 0.05f);
+            // Jouer le son "empty" seulement si le cooldown est écoulé
+            if (Time.time >= nextEmptySoundTime)
+            {
+                PlaySound(emptySound);
+                TriggerHaptic(0.1f, 0.05f);
+
+                // Empêcher le son de rejouer pendant sa durée (ou 0.5s par défaut)
+                float soundDuration = emptySound != null ? emptySound.length : 0.5f;
+                nextEmptySoundTime = Time.time + soundDuration;
+            }
             return;
         }
 
         currentAmmo--;
         nextFireTime = Time.time + fireRate;
-
+        UpdateLaserSight();
         currentAmmoText.text = currentAmmo.ToString();
 
         // Play muzzle flash
@@ -385,11 +396,6 @@ public class WeaponController : MonoBehaviour
             ShootProjectile();
         }
 
-        // Auto reload when empty
-        if (currentAmmo <= 0)
-        {
-            StartReload();
-        }
     }
 
     void ShootRaycast()
@@ -406,7 +412,6 @@ public class WeaponController : MonoBehaviour
         // Obtenir la direction en fonction du setting
         Vector3 rayDirection = GetShootDirection();
 
-        Debug.Log($"🔫 Tir | Direction: {shootDirection}");
 
         Ray ray = new Ray(rayOrigin, rayDirection);
 
@@ -420,10 +425,30 @@ public class WeaponController : MonoBehaviour
             Debug.DrawLine(rayOrigin, hit.point, Color.green, 0.5f);
             Debug.Log($"🎯 TOUCHE! {hit.collider.name} à {hit.distance:F2}m");
 
-            Target target = hit.collider.GetComponent<Target>();
-            if (target != null)
+            // NOUVEAU SYSTÈME DE DÉGÂTS avec Hitbox
+            // Priorité 1 : Chercher DamageableHitbox (pour headshots)
+            DamageableHitbox hitbox = hit.collider.GetComponent<DamageableHitbox>();
+            if (hitbox != null)
             {
-                target.TakeDamage();
+                hitbox.TakeDamage(damage, ownerTeam);
+            }
+            else
+            {
+                // Priorité 2 : Chercher HealthSystem directement
+                HealthSystem healthSystem = hit.collider.GetComponent<HealthSystem>();
+                if (healthSystem != null)
+                {
+                    healthSystem.TakeDamage(damage, ownerTeam);
+                }
+                else
+                {
+                    // Priorité 3 : Ancien système Target (pour compatibilité)
+                    Target target = hit.collider.GetComponent<Target>();
+                    if (target != null)
+                    {
+                        target.TakeDamage();
+                    }
+                }
             }
 
             if (impactEffect != null)
@@ -469,17 +494,19 @@ public class WeaponController : MonoBehaviour
         }
     }
 
-    // Affiche un effet visuel du tir
+    // Affiche un effet visuel du tir (active le laser brièvement)
     System.Collections.IEnumerator ShowShootEffect(Vector3 endPoint)
     {
         if (laserSight != null)
         {
+            // Activer le laser et afficher la trajectoire du tir
             laserSight.enabled = true;
             laserSight.SetPosition(0, firePoint.position);
             laserSight.SetPosition(1, endPoint);
 
             yield return new WaitForSeconds(0.1f);
 
+            // Désactiver le laser après le tir
             laserSight.enabled = false;
         }
     }
@@ -515,7 +542,7 @@ public class WeaponController : MonoBehaviour
 
         currentAmmo = maxAmmo;
         isReloading = false;
-        
+
     }
 
 
@@ -560,10 +587,19 @@ public class WeaponController : MonoBehaviour
 
     void PlaySound(AudioClip clip)
     {
-        if (audioSource != null && clip != null)
+        if (audioSource == null)
         {
-            audioSource.PlayOneShot(clip);
+            Debug.LogWarning("⚠️ AudioSource est NULL! Ajoutez un AudioSource au WeaponController.");
+            return;
         }
+
+        if (clip == null)
+        {
+            Debug.LogWarning("⚠️ AudioClip est NULL! Assignez un son dans l'Inspector.");
+            return;
+        }
+
+        audioSource.PlayOneShot(clip);
     }
 
     void TriggerHaptic(float intensity, float duration)
