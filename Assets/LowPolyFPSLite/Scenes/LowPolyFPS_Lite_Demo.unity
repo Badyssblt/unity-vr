@@ -1015,7 +1015,7 @@ PrefabInstance:
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
       propertyPath: useRaycast
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
@@ -1060,7 +1060,7 @@ PrefabInstance:
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
       propertyPath: targetLayer.m_Bits
-      value: 64
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
@@ -2517,6 +2517,14 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 4369658849057256386}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4338189225809480364, guid: 1092a1f5a5102e44989ab1b68db26ab3,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1677128366}
+    - targetCorrespondingSourceObject: {fileID: 3712280953399432555, guid: 1092a1f5a5102e44989ab1b68db26ab3,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1658337283}
     - targetCorrespondingSourceObject: {fileID: 2617661525247003703, guid: 1092a1f5a5102e44989ab1b68db26ab3,
         type: 3}
       insertIndex: -1
@@ -5955,7 +5963,7 @@ MonoBehaviour:
   maxSpreadAngle: 10
   autoReload: 1
   unlimitedAmmo: 0
-  showDebugLogs: 0
+  showDebugLogs: 1
 --- !u!114 &1518032565
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6501,12 +6509,12 @@ PrefabInstance:
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
       propertyPath: raycastMaxDistance
-      value: 5
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
       propertyPath: targetLayer.m_Bits
-      value: 64
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
@@ -6676,7 +6684,7 @@ Transform:
   m_GameObject: {fileID: 1605459691}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.314, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6963,6 +6971,42 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 18ddb545287c546e19cc77dc9fbb2189, type: 3}
+--- !u!1 &1658337276 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3712280953399432555, guid: 1092a1f5a5102e44989ab1b68db26ab3,
+    type: 3}
+  m_PrefabInstance: {fileID: 689303331}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1658337283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1658337276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ef86b5e691beb5429c9d834e31697a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  currentHealth: 0
+  isInvulnerable: 0
+  invulnerabilityDuration: 0
+  teamTag: Player
+  onHealthChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamageTaken:
+    m_PersistentCalls:
+      m_Calls: []
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onRevive:
+    m_PersistentCalls:
+      m_Calls: []
+  showDebugLogs: 1
 --- !u!1001 &1663883853
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7042,6 +7086,42 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1663883853}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1677128364 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4338189225809480364, guid: 1092a1f5a5102e44989ab1b68db26ab3,
+    type: 3}
+  m_PrefabInstance: {fileID: 689303331}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1677128366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1677128364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ef86b5e691beb5429c9d834e31697a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  currentHealth: 0
+  isInvulnerable: 0
+  invulnerabilityDuration: 0
+  teamTag: Player
+  onHealthChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  onDamageTaken:
+    m_PersistentCalls:
+      m_Calls: []
+  onDeath:
+    m_PersistentCalls:
+      m_Calls: []
+  onRevive:
+    m_PersistentCalls:
+      m_Calls: []
+  showDebugLogs: 1
 --- !u!114 &1703624463 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7769292894060180161, guid: ee329c3cd08e58645834d20702d7f6c6,
