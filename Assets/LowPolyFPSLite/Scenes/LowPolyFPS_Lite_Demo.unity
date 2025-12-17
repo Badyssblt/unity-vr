@@ -1043,8 +1043,13 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
-      propertyPath: shootAction.m_Action.m_SingletonActionBindings.Array.size
+      propertyPath: requireBothTriggers
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
+      propertyPath: shootAction.m_Action.m_SingletonActionBindings.Array.size
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
@@ -1053,12 +1058,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
+      propertyPath: shootAction.m_Action.m_SingletonActionBindings.Array.data[1].m_Id
+      value: 92091979-1b40-409a-81f7-84268225bf0a
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
       propertyPath: shootAction.m_Action.m_SingletonActionBindings.Array.data[0].m_Path
       value: <Mouse>/leftButton
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
+      propertyPath: shootAction.m_Action.m_SingletonActionBindings.Array.data[1].m_Path
+      value: <Keyboard>/h
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
       propertyPath: shootAction.m_Action.m_SingletonActionBindings.Array.data[0].m_Action
+      value: Shoot
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
+      propertyPath: shootAction.m_Action.m_SingletonActionBindings.Array.data[1].m_Action
       value: Shoot
       objectReference: {fileID: 0}
     - target: {fileID: 8200901163698790971, guid: ee329c3cd08e58645834d20702d7f6c6,
