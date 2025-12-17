@@ -412,18 +412,36 @@ public class WeaponController : MonoBehaviour
         // Obtenir la direction en fonction du setting
         Vector3 rayDirection = GetShootDirection();
 
+        // DEBUG: Dessiner une grosse sphère au point de départ
+        Debug.DrawRay(rayOrigin, Vector3.up * 0.5f, Color.cyan, 2f);
+        Debug.DrawRay(rayOrigin, rayDirection * 2f, Color.magenta, 2f);
 
         Ray ray = new Ray(rayOrigin, rayDirection);
 
+        // TEST: Raycast sans filtre pour voir si on touche QUELQUE CHOSE
+        RaycastHit testHit;
+        bool testHasHit = Physics.Raycast(ray, out testHit, raycastMaxDistance);
+        if (testHasHit)
+        {
+            Debug.Log($"🧪 TEST: On touche {testHit.collider.name} à {testHit.distance:F2}m (sans filtre layer)");
+        }
+        else
+        {
+            Debug.Log($"🧪 TEST: On ne touche RIEN même sans filtre layer! Direction: {rayDirection}");
+        }
+
         RaycastHit hit;
         bool hasHit = Physics.Raycast(ray, out hit, raycastMaxDistance, targetLayer);
+
+        // DEBUG: Afficher info sur le raycast
+        Debug.Log($"🔫 {gameObject.name} tire! Origin: {rayOrigin}, Direction: {rayDirection}, Distance max: {raycastMaxDistance}, LayerMask: {targetLayer.value}");
 
         // UN SEUL DrawRay au moment du tir (0.5 secondes)
         if (hasHit)
         {
             // Ligne verte jusqu'au point d'impact
-            Debug.DrawLine(rayOrigin, hit.point, Color.green, 0.5f);
-            Debug.Log($"🎯 TOUCHE! {hit.collider.name} à {hit.distance:F2}m");
+            Debug.DrawLine(rayOrigin, hit.point, Color.green, 2f);
+            Debug.Log($"🎯 TOUCHE! {hit.collider.name} (Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}) à {hit.distance:F2}m");
 
             // NOUVEAU SYSTÈME DE DÉGÂTS avec Hitbox
             // Priorité 1 : Chercher DamageableHitbox (pour headshots)
@@ -464,6 +482,9 @@ public class WeaponController : MonoBehaviour
         }
         else
         {
+            // DEBUG: Aucun impact
+            Debug.DrawLine(rayOrigin, rayOrigin + rayDirection * raycastMaxDistance, Color.red, 2f);
+            Debug.Log($"❌ RATÉ! Aucun objet touché (LayerMask: {targetLayer.value})");
 
             if (laserSight != null)
             {

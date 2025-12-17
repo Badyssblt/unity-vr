@@ -125,6 +125,8 @@ public class AIController : MonoBehaviour
 
     void UpdatePatrol()
     {
+        // Réactiver le mouvement
+        agent.isStopped = false;
         agent.speed = patrolSpeed;
 
         // Vérifier si on est arrivé au point de patrouille
@@ -150,11 +152,13 @@ public class AIController : MonoBehaviour
     {
         if (player == null) return;
 
+        // Réactiver le mouvement
+        agent.isStopped = false;
         agent.speed = chaseSpeed;
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-        // Si le joueur est à portée d'attaque
+        // Si le joueur est à portée d'attaque ET visible
         if (distanceToPlayer <= attackRange && CanSeePlayer)
         {
             ChangeState(AIState.Attack);
@@ -177,8 +181,9 @@ public class AIController : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-        // Arrêter de bouger
-        agent.SetDestination(transform.position);
+        // VRAIMENT arrêter de bouger
+        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
 
         // Regarder le joueur
         Vector3 directionToPlayer = (player.position - transform.position).normalized;
@@ -189,7 +194,7 @@ public class AIController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
 
-        // Tirer si le cooldown est écoulé
+        // Tirer si le cooldown est écoulé ET que l'IA voit le joueur
         if (Time.time >= lastAttackTime + attackCooldown && CanSeePlayer)
         {
             Attack();
@@ -199,11 +204,13 @@ public class AIController : MonoBehaviour
         // Si le joueur est trop loin, le poursuivre
         if (distanceToPlayer > attackRange)
         {
+            agent.isStopped = false; // Réactiver le mouvement
             ChangeState(AIState.Chase);
         }
         // Si le joueur est hors de vue, chercher
         else if (!CanSeePlayer)
         {
+            agent.isStopped = false; // Réactiver le mouvement
             ChangeState(AIState.Chase);
         }
     }
@@ -229,19 +236,28 @@ public class AIController : MonoBehaviour
 
         // Vérifier la distance
         if (distanceToPlayer > detectionRange)
+        {
+            if (showDebugLogs) Debug.Log($"🔍 {gameObject.name}: Joueur trop loin ({distanceToPlayer:F1}m > {detectionRange}m)");
             return false;
+        }
 
         // Vérifier l'angle de vision
         float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
         if (angleToPlayer > fieldOfView / 2f)
-            return false;
-
-        // Vérifier si un obstacle bloque la vue
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position + Vector3.up, directionToPlayer.normalized, out hit, distanceToPlayer, obstacleMask))
         {
-            // Un obstacle bloque la vue
+            if (showDebugLogs) Debug.Log($"🔍 {gameObject.name}: Joueur hors du champ de vision ({angleToPlayer:F1}° > {fieldOfView / 2f}°)");
             return false;
+        }
+
+        // Vérifier si un obstacle bloque la vue (seulement si obstacleMask est configuré)
+        if (obstacleMask != 0)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position + Vector3.up, directionToPlayer.normalized, out hit, distanceToPlayer, obstacleMask))
+            {
+                if (showDebugLogs) Debug.Log($"🔍 {gameObject.name}: Obstacle bloque la vue ({hit.collider.name})");
+                return false;
+            }
         }
 
         return true;
