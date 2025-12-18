@@ -6128,6 +6128,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
+      propertyPath: damage
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
       propertyPath: ammoParent
       value: 
       objectReference: {fileID: 2000687798}
@@ -7267,7 +7272,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f04f25aee06bb324e8007601dde427ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameDuration: 60
+  gameDuration: 200
   targetScore: 100
   menuUI: {fileID: 1580447328663142870}
   gameUI: {fileID: 3939138686934835292}
