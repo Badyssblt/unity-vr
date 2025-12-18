@@ -39,6 +39,10 @@ public class AIWeaponHandler : MonoBehaviour
 
     void Update()
     {
+        // Ne pas recharger tant que le jeu n'a pas commencé
+        if (GameManager.Instance == null || !GameManager.Instance.IsGameActive())
+            return;
+
         // Auto-reload si nécessaire
         if (autoReload && weaponController != null)
         {
@@ -64,6 +68,10 @@ public class AIWeaponHandler : MonoBehaviour
     /// </summary>
     public void Shoot()
     {
+        // Ne pas tirer tant que le jeu n'a pas commencé
+        if (GameManager.Instance == null || !GameManager.Instance.IsGameActive())
+            return;
+
         if (weaponController == null)
         {
             Debug.LogWarning($"⚠️ {gameObject.name} : Pas d'arme pour tirer!");
