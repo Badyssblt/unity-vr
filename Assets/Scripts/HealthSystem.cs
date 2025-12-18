@@ -119,8 +119,7 @@ public class HealthSystem : MonoBehaviour
 
         onDeath?.Invoke();
 
-        // Désactiver certains composants (ex: AI, contrôles)
-        // Vous pouvez personnaliser cela selon vos besoins
+        Destroy(this);
     }
 
     /// <summary>
