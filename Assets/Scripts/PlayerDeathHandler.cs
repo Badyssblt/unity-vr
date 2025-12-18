@@ -13,6 +13,7 @@ public class PlayerDeathHandler : MonoBehaviour
     [SerializeField] private float respawnDelay = 3f;
     [SerializeField] private bool autoRespawn = true;
     [SerializeField] private bool resetScene = false; // Recharger la scène au lieu de respawn
+    [SerializeField] private bool triggerGameOver = true; // Déclencher Game Over au lieu de respawn
 
     [Header("Death Effects")]
     [SerializeField] private GameObject deathScreenUI; // UI de mort (optionnel)
@@ -100,8 +101,23 @@ public class PlayerDeathHandler : MonoBehaviour
             StartCoroutine(FadeToBlackCoroutine());
         }
 
+        // Déclencher Game Over si activé
+        if (triggerGameOver)
+        {
+            if (GameManager.Instance != null)
+            {
+                if (showDebugLogs)
+                    Debug.Log("🎮 Déclenchement du Game Over...");
+
+                GameManager.Instance.EndGame();
+            }
+            else
+            {
+                Debug.LogError("❌ GameManager.Instance est null! Impossible de déclencher le Game Over.");
+            }
+        }
         // Auto-respawn ou reset
-        if (autoRespawn)
+        else if (autoRespawn)
         {
             if (resetScene)
             {
