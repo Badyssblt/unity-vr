@@ -93,6 +93,13 @@ public class AIController : MonoBehaviour
     {
         if (currentState == AIState.Dead) return;
 
+        // Ne pas bouger tant que le jeu n'a pas commencé
+        if (GameManager.Instance == null || !GameManager.Instance.IsGameActive())
+        {
+            agent.isStopped = true;
+            return;
+        }
+
         // Vérifier si on peut voir le joueur
         CanSeePlayer = CheckPlayerInSight();
 
