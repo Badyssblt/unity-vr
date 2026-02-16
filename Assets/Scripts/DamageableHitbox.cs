@@ -67,14 +67,17 @@ public class DamageableHitbox : MonoBehaviour
         // Calculer les dégâts avec multiplicateur
         float finalDamage = baseDamage * damageMultiplier;
 
+        // Déterminer si c'est un headshot
+        bool isHeadshot = (hitboxType == HitboxType.Head);
+
         if (showDebugLogs)
         {
-            string hitMessage = hitboxType == HitboxType.Head ? "🎯 HEADSHOT!" : "💥 Hit";
+            string hitMessage = isHeadshot ? "🎯 HEADSHOT!" : "💥 Hit";
             Debug.Log($"{hitMessage} {gameObject.name} | Dégâts: {baseDamage} x {damageMultiplier} = {finalDamage}");
         }
 
-        // Envoyer les dégâts au HealthSystem
-        healthSystem.TakeDamage(finalDamage, attackerTeam);
+        // Envoyer les dégâts au HealthSystem avec l'info headshot
+        healthSystem.TakeDamage(finalDamage, attackerTeam, isHeadshot);
     }
 
     /// <summary>

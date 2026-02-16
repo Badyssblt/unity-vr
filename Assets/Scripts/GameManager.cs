@@ -7,12 +7,13 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Game Settings")]
-    [SerializeField] private float gameDuration = 60f; // Timer in seconds
-    [SerializeField] private int targetScore = 100;
+    [SerializeField] private int totalEnemies = 20; // Nombre d'ennemis à tuer pour gagner
+    [SerializeField] private int pointsPerKill = 10; // Points par ennemi tué
+    [SerializeField] private int headshotBonus = 5; // Bonus pour headshot
 
     [Header("Game State")]
     private int currentScore = 0;
-    private float timeRemaining;
+    private int enemiesKilled = 0;
     private bool isGameActive = false;
     private GameState gameState = GameState.Menu;
 
@@ -20,22 +21,20 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject menuUI;
     [SerializeField] private GameObject gameUI;
     [SerializeField] private GameObject gameOverUI;
+    [SerializeField] private GameObject winUI;
     [SerializeField] private TextMeshProUGUI scoreText;
-    [SerializeField] private TextMeshProUGUI timerText;
-    [SerializeField] private TextMeshProUGUI gameOverScoreText;
+    [SerializeField] private TextMeshProUGUI enemiesText;
     [SerializeField] private TextMeshProUGUI finalScoreText;
-
-    [Header("Spawning")]
-    [SerializeField] private GameObject[] targetPrefabs;
-    [SerializeField] private Transform[] spawnPoints;
-    [SerializeField] private float spawnInterval = 2f;
-    private float nextSpawnTime;
+    [SerializeField] private TextMeshProUGUI finalKillsText;
+    [SerializeField] private TextMeshProUGUI winScoreText;
+    [SerializeField] private TextMeshProUGUI winKillsText;
 
     public enum GameState
     {
         Menu,
         Playing,
-        GameOver
+        GameOver,
+        Win
     }
 
     void Awake()
@@ -53,48 +52,14 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         SetGameState(GameState.Menu);
-        timeRemaining = gameDuration;
     }
 
     void Update()
     {
         if (gameState == GameState.Playing)
         {
-            UpdateTimer();
-            UpdateSpawning();
             UpdateUI();
         }
-    }
-
-    void UpdateTimer()
-    {
-        timeRemaining -= Time.deltaTime;
-
-        if (timeRemaining <= 0)
-        {
-            timeRemaining = 0;
-            EndGame();
-        }
-    }
-
-    void UpdateSpawning()
-    {
-        if (Time.time >= nextSpawnTime && targetPrefabs.Length > 0 && spawnPoints.Length > 0)
-        {
-            SpawnTarget();
-            nextSpawnTime = Time.time + spawnInterval;
-        }
-    }
-
-    void SpawnTarget()
-    {
-        // Random target prefab
-        GameObject targetPrefab = targetPrefabs[Random.Range(0, targetPrefabs.Length)];
-
-        // Random spawn point
-        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-
-        Instantiate(targetPrefab, spawnPoint.position, spawnPoint.rotation);
     }
 
     void UpdateUI()
@@ -102,11 +67,10 @@ public class GameManager : MonoBehaviour
         if (scoreText != null)
             scoreText.text = "Score: " + currentScore;
 
-        if (timerText != null)
+        if (enemiesText != null)
         {
-            int minutes = Mathf.FloorToInt(timeRemaining / 60);
-            int seconds = Mathf.FloorToInt(timeRemaining % 60);
-            timerText.text = string.Format("Time: {0:00}:{1:00}", minutes, seconds);
+            int remaining = totalEnemies - enemiesKilled;
+            enemiesText.text = string.Format("Enemies: {0}/{1}", enemiesKilled, totalEnemies);
         }
     }
 
@@ -118,10 +82,32 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void OnEnemyKilled(bool isHeadshot = false)
+    {
+        if (gameState != GameState.Playing) return;
+
+        enemiesKilled++;
+
+        // Ajouter les points
+        int points = pointsPerKill;
+        if (isHeadshot)
+            points += headshotBonus;
+
+        AddScore(points);
+
+        Debug.Log($"Enemy killed! Total: {enemiesKilled}/{totalEnemies} | Score: {currentScore} | Headshot: {isHeadshot}");
+
+        // Vérifier si tous les ennemis sont tués
+        if (enemiesKilled >= totalEnemies)
+        {
+            WinGame();
+        }
+    }
+
     public void StartGame()
     {
         currentScore = 0;
-        timeRemaining = gameDuration;
+        enemiesKilled = 0;
         SetGameState(GameState.Playing);
 
         // Play gameplay music
@@ -136,18 +122,33 @@ public class GameManager : MonoBehaviour
         if (finalScoreText != null)
             finalScoreText.text = "Final Score: " + currentScore;
 
+        if (finalKillsText != null)
+            finalKillsText.text = string.Format("Enemies Killed: {0}/{1}", enemiesKilled, totalEnemies);
+
         // Play game over music/sound
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayGameOverMusic();
             AudioManager.Instance.PlayGameOver();
         }
+    }
 
-        // Clean up all remaining targets
-        Target[] targets = FindObjectsOfType<Target>();
-        foreach (Target target in targets)
+    public void WinGame()
+    {
+        SetGameState(GameState.Win);
+
+        if (winScoreText != null)
+            winScoreText.text = "Final Score: " + currentScore;
+
+        if (winKillsText != null)
+            winKillsText.text = string.Format("Enemies Killed: {0}/{1}", enemiesKilled, totalEnemies);
+
+        Debug.Log($"Victory! Final Score: {currentScore} | Enemies Killed: {enemiesKilled}/{totalEnemies}");
+
+        // Play victory music/sound (you can add a PlayVictoryMusic method in AudioManager)
+        if (AudioManager.Instance != null)
         {
-            Destroy(target.gameObject);
+            // AudioManager.Instance.PlayVictoryMusic();
         }
     }
 
@@ -178,10 +179,15 @@ public class GameManager : MonoBehaviour
 
         if (gameOverUI != null)
             gameOverUI.SetActive(gameState == GameState.GameOver);
+
+        if (winUI != null)
+            winUI.SetActive(gameState == GameState.Win);
     }
 
     // Public getters
     public int GetScore() => currentScore;
-    public float GetTimeRemaining() => timeRemaining;
+    public int GetEnemiesKilled() => enemiesKilled;
+    public int GetTotalEnemies() => totalEnemies;
     public bool IsGameActive() => gameState == GameState.Playing;
+    public bool HasWon() => gameState == GameState.Win;
 }

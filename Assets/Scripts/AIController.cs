@@ -35,11 +35,14 @@ public class AIController : MonoBehaviour
     private Vector3 patrolTarget;
 
     [Header("Attack Settings")]
-    [SerializeField] private float attackCooldown = 1f;
-    private float lastAttackTime;
+    // Le WeaponController gère maintenant le fireRate, pas besoin d'attackCooldown ici
 
     [Header("Rotation Settings")]
     [SerializeField] private float rotationSpeed = 5f;
+
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private bool autoFindAnimator = true;
 
     [Header("Debug")]
     [SerializeField] private bool showDebugGizmos = true;
@@ -50,6 +53,15 @@ public class AIController : MonoBehaviour
     private HealthSystem healthSystem;
     private AIWeaponHandler weaponHandler;
 
+    // Animation parameters
+    private static readonly int SpeedParam = Animator.StringToHash("Speed");
+    private static readonly int IsRunningParam = Animator.StringToHash("IsRunning");
+    private static readonly int IsShootingParam = Animator.StringToHash("IsShooting");
+    private static readonly int IsReloadingParam = Animator.StringToHash("IsReloading");
+    private static readonly int IsDieParam = Animator.StringToHash("IsDie");
+    private static readonly int DieParam = Animator.StringToHash("Die");
+    private static readonly int DieHeadshotParam = Animator.StringToHash("DieHeadshot");
+
     public Transform Player => player;
     public AIState CurrentState => currentState;
     public bool CanSeePlayer { get; private set; }
@@ -59,6 +71,20 @@ public class AIController : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         healthSystem = GetComponent<HealthSystem>();
         weaponHandler = GetComponent<AIWeaponHandler>();
+
+        // Auto-trouver l'Animator
+        if (autoFindAnimator && animator == null)
+        {
+            animator = GetComponentInChildren<Animator>();
+            if (animator != null)
+            {
+                Debug.Log($"✅ {gameObject.name} a trouvé l'Animator: {animator.name}");
+            }
+            else
+            {
+                Debug.LogWarning($"⚠️ {gameObject.name} : Aucun Animator trouvé!");
+            }
+        }
 
         // Auto-trouver le joueur
         if (autoFindPlayer && player == null)
@@ -75,10 +101,10 @@ public class AIController : MonoBehaviour
             }
         }
 
-        // S'abonner à l'événement de mort
+        // S'abonner à l'événement de mort avec type (headshot vs bodyshot)
         if (healthSystem != null)
         {
-            healthSystem.onDeath.AddListener(OnDeath);
+            healthSystem.onDeathWithType.AddListener(OnDeathWithType);
         }
     }
 
@@ -119,6 +145,36 @@ public class AIController : MonoBehaviour
                 UpdateAttack();
                 break;
         }
+
+        // Mettre à jour les animations
+        UpdateAnimations();
+    }
+
+    void UpdateAnimations()
+    {
+        if (animator == null) return;
+
+        // Calculer la vitesse de déplacement
+        float speed = agent.velocity.magnitude;
+
+        // Mettre à jour les paramètres de l'Animator
+        animator.SetFloat(SpeedParam, speed);
+        animator.SetBool(IsRunningParam, speed > 0.1f);
+
+        // IsShooting est true seulement en état Attack
+        animator.SetBool(IsShootingParam, currentState == AIState.Attack);
+
+        // IsReloading depuis le WeaponController via AIWeaponHandler
+        bool isReloading = false;
+        if (weaponHandler != null)
+        {
+            // AIWeaponHandler va exposer l'état de rechargement
+            isReloading = weaponHandler.IsWeaponReloading();
+        }
+        animator.SetBool(IsReloadingParam, isReloading);
+
+        // IsDie est true quand l'ennemi est mort
+        animator.SetBool(IsDieParam, currentState == AIState.Dead);
     }
 
     void UpdateIdle()
@@ -201,11 +257,11 @@ public class AIController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
 
-        // Tirer si le cooldown est écoulé ET que l'IA voit le joueur
-        if (Time.time >= lastAttackTime + attackCooldown && CanSeePlayer)
+        // Tirer continuellement si l'IA voit le joueur
+        // Le WeaponController gère le fireRate, on peut appeler Attack() à chaque frame
+        if (CanSeePlayer)
         {
             Attack();
-            lastAttackTime = Time.time;
         }
 
         // Si le joueur est trop loin, le poursuivre
@@ -230,6 +286,7 @@ public class AIController : MonoBehaviour
         // Déclencher le tir via AIWeaponHandler
         if (weaponHandler != null)
         {
+            animator.SetTrigger("Shoot");
             weaponHandler.Shoot();
         }
     }
@@ -305,13 +362,35 @@ public class AIController : MonoBehaviour
         }
     }
 
-    void OnDeath()
+    void OnDeathWithType(bool isHeadshot)
     {
         currentState = AIState.Dead;
         agent.enabled = false;
 
         if (showDebugLogs)
-            Debug.Log($"💀 {gameObject.name} est mort!");
+        {
+            string deathType = isHeadshot ? "HEADSHOT 🎯" : "bodyshot";
+            Debug.Log($"💀 {gameObject.name} est mort! ({deathType})");
+        }
+
+        // Notifier le GameManager
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnEnemyKilled(isHeadshot);
+        }
+
+        // Déclencher l'animation de mort appropriée
+        if (animator != null)
+        {
+            if (isHeadshot)
+            {
+                animator.SetTrigger(DieHeadshotParam);
+            }
+            else
+            {
+                animator.SetTrigger(DieParam);
+            }
+        }
 
         // Désactiver les composants
         if (weaponHandler != null)

@@ -13,10 +13,18 @@ public class WeaponController : MonoBehaviour
     [Header("Weapon Settings")]
     [SerializeField] private int maxAmmo = 10;
     [SerializeField] private int currentAmmo;
-    [SerializeField] private float fireRate = 0.5f;
+    [SerializeField] private FireMode fireMode = FireMode.SemiAuto;
+    [SerializeField] private float fireRateSemiAuto = 0.5f;  // Temps entre chaque tir en semi-auto
+    [SerializeField] private float fireRateFullAuto = 0.1f;  // Temps entre chaque tir en full-auto (mitraillette!)
     [SerializeField] private float reloadTime = 2f;
     [SerializeField] private float damage = 25f; // Dégâts de base de l'arme
     [SerializeField] private string ownerTeam = "Player"; // "Player" ou "Enemy"
+
+    public enum FireMode
+    {
+        SemiAuto,   // Coup par coup (relâcher et re-appuyer pour tirer)
+        FullAuto    // Automatique (maintenir pour rafale)
+    }
 
     [Header("Raycast Settings")]
     [SerializeField] private bool useRaycast = true;
@@ -83,10 +91,22 @@ public class WeaponController : MonoBehaviour
     private XRBaseControllerInteractor primaryInteractor;   // Main principale (grip)
     private XRBaseControllerInteractor secondaryInteractor; // Main secondaire (foregrip)
     private List<XRBaseControllerInteractor> interactors = new List<XRBaseControllerInteractor>();
+    private bool wasTriggerPressed = false; // Pour le mode semi-auto
 
     void Start()
     {
         currentAmmo = maxAmmo;
+
+        // Auto-détection du propriétaire si c'est un ennemi
+        AIController aiController = GetComponentInParent<AIController>();
+        if (aiController != null)
+        {
+            ownerTeam = "Enemy";
+            // Désactiver les références UI pour les ennemis
+            currentAmmoText = null;
+            maxAmmoText = null;
+            ammoParent = null;
+        }
 
         if (grabInteractable == null)
             grabInteractable = GetComponent<XRGrabInteractable>();
@@ -162,20 +182,22 @@ public class WeaponController : MonoBehaviour
             }
         }
 
-        // Afficher l'UI seulement si au moins une main tient l'arme
-        if (ammoParent != null)
+        // Afficher l'UI seulement si au moins une main tient l'arme (joueur uniquement)
+        if (ownerTeam == "Player" && ammoParent != null)
         {
             ammoParent.SetActive(true);
-            currentAmmoText.text = currentAmmo.ToString();
-            maxAmmoText.text = maxAmmo.ToString();
+            UpdateAmmoUI();
         }
     }
 
     public void UpdateAmmoUI()
     {
-         currentAmmoText.text = currentAmmo.ToString();
-         maxAmmoText.text = maxAmmo.ToString();
-        
+        // Ne mettre à jour l'UI que pour l'arme du joueur
+        if (ownerTeam != "Player") return;
+        if (currentAmmoText == null || maxAmmoText == null) return;
+
+        currentAmmoText.text = currentAmmo.ToString();
+        maxAmmoText.text = maxAmmo.ToString();
     }
 
     void OnReleased(SelectExitEventArgs args)
@@ -201,8 +223,8 @@ public class WeaponController : MonoBehaviour
             }
         }
 
-        // Cacher l'UI si aucune main ne tient l'arme
-        if (interactors.Count == 0 && ammoParent != null)
+        // Cacher l'UI si aucune main ne tient l'arme (joueur uniquement)
+        if (ownerTeam == "Player" && interactors.Count == 0 && ammoParent != null)
         {
             ammoParent.SetActive(false);
         }
@@ -249,12 +271,35 @@ public class WeaponController : MonoBehaviour
         // Only allow shooting when weapon is grabbed
         if (grabInteractable != null && grabInteractable.isSelected)
         {
+            bool triggerPressed = CanShoot();
 
-            // Vérifier les conditions de tir
-            if (CanShoot() && Time.time >= nextFireTime && !isReloading)
+            // Déterminer le fireRate selon le mode
+            float currentFireRate = (fireMode == FireMode.FullAuto) ? fireRateFullAuto : fireRateSemiAuto;
+
+            // Mode de tir
+            if (fireMode == FireMode.FullAuto)
             {
-                Shoot();
+                // Mode automatique: tirer tant que le trigger est pressé
+                if (triggerPressed && Time.time >= nextFireTime && !isReloading)
+                {
+                    Shoot();
+                }
             }
+            else if (fireMode == FireMode.SemiAuto)
+            {
+                // Mode semi-auto: tirer seulement au moment où on presse (pas en maintenant)
+                if (triggerPressed && !wasTriggerPressed && Time.time >= nextFireTime && !isReloading)
+                {
+                    Shoot();
+                }
+            }
+
+            // Tracker l'état du trigger pour le prochain frame
+            wasTriggerPressed = triggerPressed;
+        }
+        else
+        {
+            wasTriggerPressed = false;
         }
 
         // Ne pas afficher le laser en continu (seulement lors du tir)
@@ -357,6 +402,13 @@ public class WeaponController : MonoBehaviour
 
     public void Shoot()
     {
+        // Vérifier le fireRate (important pour l'IA qui appelle Shoot() directement)
+        float currentFireRate = (fireMode == FireMode.FullAuto) ? fireRateFullAuto : fireRateSemiAuto;
+        if (Time.time < nextFireTime)
+        {
+            return; // Trop tôt pour tirer
+        }
+
         if (currentAmmo <= 0)
         {
             // Jouer le son "empty" seulement si le cooldown est écoulé
@@ -373,9 +425,12 @@ public class WeaponController : MonoBehaviour
         }
 
         currentAmmo--;
-        nextFireTime = Time.time + fireRate;
+
+        // nextFireTime utilise la variable currentFireRate déjà définie au début de la méthode
+        nextFireTime = Time.time + currentFireRate;
+
         UpdateLaserSight();
-        currentAmmoText.text = currentAmmo.ToString();
+        UpdateAmmoUI();
 
         // Play muzzle flash
         if (muzzleFlash != null)
@@ -673,6 +728,19 @@ public class WeaponController : MonoBehaviour
     public int GetMaxAmmo() => maxAmmo;
     public bool IsReloading() => isReloading;
     public Transform GetFirePoint() => firePoint;
+    public FireMode GetFireMode() => fireMode;
+
+    /// <summary>
+    /// Retire des munitions (utilisé par les ennemis)
+    /// </summary>
+    public void RemoveAmmo(int amount)
+    {
+        currentAmmo -= amount;
+        currentAmmo = Mathf.Max(0, currentAmmo);
+        UpdateAmmoUI();
+
+        Debug.Log($"⚠️ {amount} munitions retirées! Munitions restantes: {currentAmmo}/{maxAmmo}");
+    }
 
     // Visualisation du raycast dans la Scene view
     #if UNITY_EDITOR

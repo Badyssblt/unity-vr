@@ -19,10 +19,14 @@ public class HealthSystem : MonoBehaviour
     public UnityEvent<float> onHealthChanged; // Passe la health actuelle
     public UnityEvent<float, float> onDamageTaken; // Passe les dégâts et la health restante
     public UnityEvent onDeath;
+    public UnityEvent<bool> onDeathWithType; // Passe true si headshot, false sinon
     public UnityEvent onRevive;
 
     [Header("Debug")]
     [SerializeField] private bool showDebugLogs = true;
+
+    // Track last hit type for death animation
+    private bool lastHitWasHeadshot = false;
 
     public float CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
@@ -47,7 +51,7 @@ public class HealthSystem : MonoBehaviour
     /// <summary>
     /// Infliger des dégâts à cette entité
     /// </summary>
-    public void TakeDamage(float damage, string attackerTeam = "")
+    public void TakeDamage(float damage, string attackerTeam = "", bool isHeadshot = false)
     {
         // Ne pas prendre de dégâts si mort
         if (!IsAlive)
@@ -64,6 +68,9 @@ public class HealthSystem : MonoBehaviour
         }
 
         // Système de team désactivé - tout le monde peut se tirer dessus
+
+        // Tracker le type de hit pour l'animation de mort
+        lastHitWasHeadshot = isHeadshot;
 
         // Appliquer les dégâts
         currentHealth -= damage;
@@ -115,11 +122,16 @@ public class HealthSystem : MonoBehaviour
     void Die()
     {
         if (showDebugLogs)
-            Debug.Log($"💀 {gameObject.name} est mort!");
+        {
+            string deathType = lastHitWasHeadshot ? "HEADSHOT 🎯" : "bodyshot";
+            Debug.Log($"💀 {gameObject.name} est mort! ({deathType})");
+        }
 
         onDeath?.Invoke();
+        onDeathWithType?.Invoke(lastHitWasHeadshot);
 
-        Destroy(this);
+        // Ne pas détruire le component, juste invoquer les events
+        // Le GameObject parent (Enemy AI) sera détruit par AIController après l'animation
     }
 
     /// <summary>

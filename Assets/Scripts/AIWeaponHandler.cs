@@ -193,4 +193,13 @@ public class AIWeaponHandler : MonoBehaviour
         if (weaponController == null) return;
         weaponController.StartReload();
     }
+
+    /// <summary>
+    /// Vérifier si l'arme est en train de recharger
+    /// </summary>
+    public bool IsWeaponReloading()
+    {
+        if (weaponController == null) return false;
+        return weaponController.IsReloading();
+    }
 }
