@@ -154,8 +154,9 @@ public class HealthSystem : MonoBehaviour
     /// <summary>
     /// Tuer instantanément (ignore l'invulnérabilité)
     /// </summary>
-    public void InstantKill()
+    public void InstantKill(bool isHeadshot = true)
     {
+        lastHitWasHeadshot = isHeadshot;
         currentHealth = 0;
         Die();
     }

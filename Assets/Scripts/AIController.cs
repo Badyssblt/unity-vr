@@ -23,7 +23,7 @@ public class AIController : MonoBehaviour
     [SerializeField] private float detectionRange = 15f;
     [SerializeField] private float attackRange = 10f;
     [SerializeField] private float fieldOfView = 90f; // Angle de vision
-    [SerializeField] private LayerMask obstacleMask; // Pour vérifier si un obstacle bloque la vue
+    [SerializeField] private LayerMask obstacleMask = 1; // Layer "Default" par défaut pour bloquer la vue
     [SerializeField] private bool autoFindPlayer = true;
 
     [Header("Movement Settings")]
@@ -46,7 +46,7 @@ public class AIController : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] private bool showDebugGizmos = true;
-    [SerializeField] private bool showDebugLogs = false;
+    [SerializeField] private bool showDebugLogs = true;
 
     // Composants
     private NavMeshAgent agent;
@@ -89,16 +89,7 @@ public class AIController : MonoBehaviour
         // Auto-trouver le joueur
         if (autoFindPlayer && player == null)
         {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
-            {
-                player = playerObj.transform;
-                Debug.Log($"✅ {gameObject.name} a trouvé le joueur: {player.name}");
-            }
-            else
-            {
-                Debug.LogWarning($"⚠️ {gameObject.name} : Aucun joueur trouvé avec le tag 'Player'!");
-            }
+            FindPlayer();
         }
 
         // S'abonner à l'événement de mort avec type (headshot vs bodyshot)
@@ -124,6 +115,12 @@ public class AIController : MonoBehaviour
         {
             agent.isStopped = true;
             return;
+        }
+
+        // Rechercher le joueur s'il n'a pas été trouvé
+        if (autoFindPlayer && player == null)
+        {
+            FindPlayer();
         }
 
         // Vérifier si on peut voir le joueur
@@ -257,25 +254,24 @@ public class AIController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
 
-        // Tirer continuellement si l'IA voit le joueur
-        // Le WeaponController gère le fireRate, on peut appeler Attack() à chaque frame
-        if (CanSeePlayer)
+        // Si le joueur est hors de vue, retourner en patrouille
+        if (!CanSeePlayer)
         {
-            Attack();
+            agent.isStopped = false;
+            ChangeState(AIState.Patrol);
+            return;
         }
 
         // Si le joueur est trop loin, le poursuivre
         if (distanceToPlayer > attackRange)
         {
-            agent.isStopped = false; // Réactiver le mouvement
+            agent.isStopped = false;
             ChangeState(AIState.Chase);
+            return;
         }
-        // Si le joueur est hors de vue, chercher
-        else if (!CanSeePlayer)
-        {
-            agent.isStopped = false; // Réactiver le mouvement
-            ChangeState(AIState.Chase);
-        }
+
+        // Tirer si l'IA voit le joueur
+        Attack();
     }
 
     void Attack()
@@ -325,6 +321,51 @@ public class AIController : MonoBehaviour
         }
 
         return true;
+    }
+
+    bool IsValidPlayerTarget()
+    {
+        if (player == null) return false;
+
+        // Valide si c'est taggé Player
+        if (player.CompareTag("Player")) return true;
+
+        // Valide si c'est une caméra (suit le mouvement en VR)
+        if (player.GetComponent<Camera>() != null) return true;
+
+        // Non valide - probablement un XROrigin sans caméra
+        return false;
+    }
+
+    void FindPlayer()
+    {
+        // 1. Chercher par tag "Player"
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+            Debug.Log($"✅ {gameObject.name} a trouvé le joueur par tag: {player.name}");
+            return;
+        }
+
+        // 2. Chercher XROrigin (VR) - utiliser la caméra uniquement
+        var xrOrigin = FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+        if (xrOrigin != null && xrOrigin.Camera != null)
+        {
+            player = xrOrigin.Camera.transform;
+            Debug.Log($"✅ {gameObject.name} a trouvé le joueur via XROrigin Camera: {player.name}");
+            return;
+        }
+
+        // 3. Chercher la Main Camera en dernier recours
+        if (Camera.main != null)
+        {
+            player = Camera.main.transform;
+            Debug.Log($"✅ {gameObject.name} a trouvé le joueur via Main Camera: {player.name}");
+            return;
+        }
+
+        Debug.LogWarning($"⚠️ {gameObject.name} : Aucun joueur trouvé!");
     }
 
     void SetNewPatrolTarget()
@@ -379,17 +420,10 @@ public class AIController : MonoBehaviour
             GameManager.Instance.OnEnemyKilled(isHeadshot);
         }
 
-        // Déclencher l'animation de mort appropriée
+        // Déclencher l'animation de mort
         if (animator != null)
         {
-            if (isHeadshot)
-            {
-                animator.SetTrigger(DieHeadshotParam);
-            }
-            else
-            {
-                animator.SetTrigger(DieParam);
-            }
+            animator.SetTrigger(IsDieParam);
         }
 
         // Désactiver les composants

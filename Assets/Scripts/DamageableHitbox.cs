@@ -11,6 +11,11 @@ public class DamageableHitbox : MonoBehaviour
     [SerializeField] private HealthSystem healthSystem;
     [SerializeField] private HitboxType hitboxType = HitboxType.Body;
     [SerializeField] private float damageMultiplier = 1f;
+    [SerializeField] private bool headshotInstantKill = true; // One shot headshot
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip hitSound;
+    [SerializeField] private float hitSoundVolume = 1f;
 
     [Header("Debug")]
     [SerializeField] private bool showDebugLogs = true;
@@ -64,11 +69,25 @@ public class DamageableHitbox : MonoBehaviour
             return;
         }
 
-        // Calculer les dégâts avec multiplicateur
-        float finalDamage = baseDamage * damageMultiplier;
+        // Jouer le son de hit
+        PlayHitSound();
 
         // Déterminer si c'est un headshot
         bool isHeadshot = (hitboxType == HitboxType.Head);
+
+        // One shot headshot
+        if (isHeadshot && headshotInstantKill)
+        {
+            if (showDebugLogs)
+            {
+                Debug.Log($"🎯 HEADSHOT INSTANT KILL! {gameObject.name}");
+            }
+            healthSystem.InstantKill();
+            return;
+        }
+
+        // Calculer les dégâts avec multiplicateur
+        float finalDamage = baseDamage * damageMultiplier;
 
         if (showDebugLogs)
         {
@@ -78,6 +97,14 @@ public class DamageableHitbox : MonoBehaviour
 
         // Envoyer les dégâts au HealthSystem avec l'info headshot
         healthSystem.TakeDamage(finalDamage, attackerTeam, isHeadshot);
+    }
+
+    void PlayHitSound()
+    {
+        if (hitSound != null)
+        {
+            AudioSource.PlayClipAtPoint(hitSound, transform.position, hitSoundVolume);
+        }
     }
 
     /// <summary>

@@ -129,8 +129,22 @@ public class AIWeaponHandler : MonoBehaviour
             return;
         }
 
-        // Calculer la position de visée (ajout d'un offset vertical pour viser la poitrine/tête)
-        Vector3 targetPosition = player.position + Vector3.up * aimHeightOffset;
+        // Calculer la position de visée
+        // Si le joueur est une caméra VR (déjà à hauteur de tête), on vise directement
+        // Sinon on ajoute un offset pour viser la poitrine/tête
+        Vector3 targetPosition;
+        bool isVRCamera = player.GetComponent<Camera>() != null;
+
+        if (isVRCamera)
+        {
+            // La caméra VR est déjà à hauteur de tête, viser directement
+            targetPosition = player.position;
+        }
+        else
+        {
+            // Position au sol, ajouter l'offset vertical
+            targetPosition = player.position + Vector3.up * aimHeightOffset;
+        }
 
         // Calculer la direction vers la cible depuis le FirePoint
         Vector3 directionToPlayer = (targetPosition - firePoint.position).normalized;
@@ -139,7 +153,7 @@ public class AIWeaponHandler : MonoBehaviour
         firePoint.rotation = Quaternion.LookRotation(directionToPlayer);
 
         if (showDebugLogs)
-            Debug.Log($"🎯 {gameObject.name} vise le joueur à {targetPosition} (offset: {aimHeightOffset}m) depuis {firePoint.position}");
+            Debug.Log($"🎯 {gameObject.name} vise le joueur à {targetPosition} (VR: {isVRCamera}) depuis {firePoint.position}");
     }
 
     /// <summary>
