@@ -420,9 +420,10 @@ public class AIController : MonoBehaviour
             GameManager.Instance.OnEnemyKilled(isHeadshot);
         }
 
-        // Déclencher l'animation de mort
+        // Déclencher l'animation de mort avec Root Motion pour que le modèle recule et tombe
         if (animator != null)
         {
+            animator.applyRootMotion = true;
             animator.SetTrigger(IsDieParam);
         }
 
