@@ -3,7 +3,14 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(git add:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(xxd:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git fetch:*)",
+      "Bash(ssh:*)",
+      "Bash(ssh-add:*)",
+      "Bash(gh auth status:*)",
+      "Bash(git update-ref:*)"
     ],
     "deny": [],
     "ask": []
