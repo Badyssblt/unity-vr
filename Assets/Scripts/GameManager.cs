@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI finalKillsText;
     [SerializeField] private TextMeshProUGUI winScoreText;
     [SerializeField] private TextMeshProUGUI winKillsText;
+    [SerializeField] private GameObject crosshairUI;
 
     public enum GameState
     {
@@ -182,6 +183,9 @@ public class GameManager : MonoBehaviour
 
         if (winUI != null)
             winUI.SetActive(gameState == GameState.Win);
+
+        if (crosshairUI != null)
+            crosshairUI.SetActive(gameState == GameState.Playing);
     }
 
     // Public getters

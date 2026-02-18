@@ -77,7 +77,6 @@ public class MagazineSocket : MonoBehaviour
         currentMagazine = insertedObject;
         hasMagazine = true;
 
-
         // Jouer le son d'insertion
         PlaySound(insertSound);
 
@@ -97,6 +96,8 @@ public class MagazineSocket : MonoBehaviour
         GameObject ejectedMagazine = currentMagazine;
         currentMagazine = null;
         hasMagazine = false;
+
+        // L'ignore collision avec le joueur reste actif
 
         // Jouer le son d'éjection
         PlaySound(ejectSound);

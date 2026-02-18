@@ -13,7 +13,7 @@ public class WeaponController : MonoBehaviour
     [Header("Weapon Settings")]
     [SerializeField] private int maxAmmo = 10;
     [SerializeField] private int currentAmmo;
-    [SerializeField] private FireMode fireMode = FireMode.SemiAuto;
+    [SerializeField] private FireMode fireMode = FireMode.FullAuto;
     [SerializeField] private float fireRateSemiAuto = 0.5f;  // Temps entre chaque tir en semi-auto
     [SerializeField] private float fireRateFullAuto = 0.1f;  // Temps entre chaque tir en full-auto (mitraillette!)
     [SerializeField] private float reloadTime = 2f;
@@ -92,6 +92,7 @@ public class WeaponController : MonoBehaviour
     private XRBaseControllerInteractor secondaryInteractor; // Main secondaire (foregrip)
     private List<XRBaseControllerInteractor> interactors = new List<XRBaseControllerInteractor>();
     private bool wasTriggerPressed = false; // Pour le mode semi-auto
+    private Rigidbody weaponRigidbody;
 
     void Start()
     {
@@ -111,8 +112,29 @@ public class WeaponController : MonoBehaviour
         if (grabInteractable == null)
             grabInteractable = GetComponent<XRGrabInteractable>();
 
+        // Configurer le Rigidbody pour éviter que l'arme vole
+        weaponRigidbody = GetComponent<Rigidbody>();
+        if (weaponRigidbody != null)
+        {
+            weaponRigidbody.isKinematic = false;
+            weaponRigidbody.mass = 3f;
+            weaponRigidbody.drag = 5f;
+            weaponRigidbody.angularDrag = 5f;
+        }
+
+        // Configurer le XR Grab Interactable
+        if (grabInteractable != null)
+        {
+            grabInteractable.throwOnDetach = false;
+            grabInteractable.movementType = XRBaseInteractable.MovementType.Instantaneous;
+        }
+
         if (audioSource == null)
             audioSource = GetComponent<AudioSource>();
+
+        // Forcer le laser en world space pour éviter le biais
+        if (laserSight != null)
+            laserSight.useWorldSpace = true;
 
         // Auto-trouver le firePoint si non assigné
         if (firePoint == null)
@@ -182,6 +204,8 @@ public class WeaponController : MonoBehaviour
             }
         }
 
+        // MovementType.Kinematic gère automatiquement les collisions
+
         // Afficher l'UI seulement si au moins une main tient l'arme (joueur uniquement)
         if (ownerTeam == "Player" && ammoParent != null)
         {
@@ -227,6 +251,24 @@ public class WeaponController : MonoBehaviour
         if (ownerTeam == "Player" && interactors.Count == 0 && ammoParent != null)
         {
             ammoParent.SetActive(false);
+        }
+
+        // Quand l'arme est complètement lâchée
+        if (interactors.Count == 0)
+        {
+            if (weaponRigidbody != null)
+            {
+                weaponRigidbody.velocity = Vector3.zero;
+                weaponRigidbody.angularVelocity = Vector3.zero;
+            }
+
+            // Remettre le magazine en non-kinematic pour pouvoir le grab
+            if (magazineSocket != null && magazineSocket.HasMagazine())
+            {
+                Rigidbody magRb = magazineSocket.GetMagazine().GetComponent<Rigidbody>();
+                if (magRb != null)
+                    magRb.isKinematic = false;
+            }
         }
     }
 
