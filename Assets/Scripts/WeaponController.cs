@@ -82,7 +82,7 @@ public class WeaponController : MonoBehaviour
     [Header("VR Reload System")]
     [SerializeField] private bool useVRReload = true;
     [SerializeField] private MagazineSocket magazineSocket; // Socket pour insérer le chargeur
-    [SerializeField] private KeyCode ejectMagazineKey = KeyCode.E;
+    [SerializeField] private InputActionProperty ejectMagazineAction; // Bouton B pour éjecter le chargeur
 
     private float nextFireTime;
     private bool isReloading;
@@ -176,6 +176,13 @@ public class WeaponController : MonoBehaviour
             magazineSocket.onMagazineInserted.AddListener(OnMagazineInserted);
             magazineSocket.onMagazineEjected.AddListener(OnMagazineEjected);
             Debug.Log("✅ MagazineSocket connecté au WeaponController");
+        }
+
+        // Activer l'action d'éjection du chargeur (Bouton B)
+        if (ejectMagazineAction.action != null)
+        {
+            ejectMagazineAction.action.Enable();
+            Debug.Log($"✅ Eject Magazine Action activée: {ejectMagazineAction.action.name}");
         }
     }
 
@@ -310,6 +317,19 @@ public class WeaponController : MonoBehaviour
 
     void Update()
     {
+        // Éjection du chargeur avec le Bouton B
+        if (useVRReload && magazineSocket != null && grabInteractable != null && grabInteractable.isSelected)
+        {
+            if (ejectMagazineAction.action != null && ejectMagazineAction.action.WasPerformedThisFrame())
+            {
+                if (magazineSocket.HasMagazine())
+                {
+                    magazineSocket.EjectMagazine();
+                    Debug.Log("🔓 Chargeur éjecté via Bouton B!");
+                }
+            }
+        }
+
         // Only allow shooting when weapon is grabbed
         if (grabInteractable != null && grabInteractable.isSelected)
         {

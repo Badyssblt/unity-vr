@@ -2381,8 +2381,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
+      propertyPath: ejectMagazineAction.m_Action.m_Name
+      value: Eject Magazine
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
       propertyPath: shootAction.m_Action.m_SingletonActionBindings.Array.size
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
+      propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.size
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
@@ -2428,6 +2438,21 @@ PrefabInstance:
         type: 3}
       propertyPath: shootAction.m_Action.m_SingletonActionBindings.Array.data[2].m_Action
       value: Shoot
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
+      propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.data[0].m_Id
+      value: 5e0f3938-1fd1-445c-8f4b-3bc42359c3b9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
+      propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.data[0].m_Path
+      value: <XRSimulatedController>{RightHand}/secondaryButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
+      propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.data[0].m_Action
+      value: Eject Magazine
       objectReference: {fileID: 0}
     - target: {fileID: 7915725348434359094, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
