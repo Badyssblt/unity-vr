@@ -20,7 +20,7 @@ public class DisableColliderOnGrab : MonoBehaviour
     void Start()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
-        colliders = GetComponents<Collider>();
+        colliders = GetComponentsInChildren<Collider>();
         rb = GetComponent<Rigidbody>();
 
         if (rb != null)

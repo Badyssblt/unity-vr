@@ -7,14 +7,15 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Game Settings")]
-    [SerializeField] private int totalEnemies = 20; // Nombre d'ennemis à tuer pour gagner
     [SerializeField] private int pointsPerKill = 10; // Points par ennemi tué
     [SerializeField] private int headshotBonus = 5; // Bonus pour headshot
+
+    [Header("Wave System")]
+    [SerializeField] private WaveSpawner waveSpawner;
 
     [Header("Game State")]
     private int currentScore = 0;
     private int enemiesKilled = 0;
-    private bool isGameActive = false;
     private GameState gameState = GameState.Menu;
 
     [Header("UI References")]
@@ -24,6 +25,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject winUI;
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI enemiesText;
+    [SerializeField] private TextMeshProUGUI waveText;
     [SerializeField] private TextMeshProUGUI finalScoreText;
     [SerializeField] private TextMeshProUGUI finalKillsText;
     [SerializeField] private TextMeshProUGUI winScoreText;
@@ -52,6 +54,11 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        if (scoreText == null)
+            Debug.LogWarning("GameManager: scoreText n'est pas assigné dans l'Inspector!");
+        if (enemiesText == null)
+            Debug.LogWarning("GameManager: enemiesText n'est pas assigné dans l'Inspector!");
+
         SetGameState(GameState.Menu);
     }
 
@@ -69,10 +76,10 @@ public class GameManager : MonoBehaviour
             scoreText.text = "Score: " + currentScore;
 
         if (enemiesText != null)
-        {
-            int remaining = totalEnemies - enemiesKilled;
-            enemiesText.text = string.Format("Enemies: {0}/{1}", enemiesKilled, totalEnemies);
-        }
+            enemiesText.text = "Kills: " + enemiesKilled;
+
+        if (waveText != null && waveSpawner != null)
+            waveText.text = string.Format("Vague {0}/{1}", waveSpawner.CurrentWave, waveSpawner.MaxWaves);
     }
 
     public void AddScore(int points)
@@ -80,6 +87,7 @@ public class GameManager : MonoBehaviour
         if (gameState == GameState.Playing)
         {
             currentScore += points;
+            UpdateUI();
         }
     }
 
@@ -96,13 +104,9 @@ public class GameManager : MonoBehaviour
 
         AddScore(points);
 
-        Debug.Log($"Enemy killed! Total: {enemiesKilled}/{totalEnemies} | Score: {currentScore} | Headshot: {isHeadshot}");
+        Debug.Log($"Enemy killed! Total: {enemiesKilled} | Score: {currentScore} | Headshot: {isHeadshot}");
 
-        // Vérifier si tous les ennemis sont tués
-        if (enemiesKilled >= totalEnemies)
-        {
-            WinGame();
-        }
+        UpdateUI();
     }
 
     public void StartGame()
@@ -110,6 +114,10 @@ public class GameManager : MonoBehaviour
         currentScore = 0;
         enemiesKilled = 0;
         SetGameState(GameState.Playing);
+
+        // Démarrer les vagues
+        if (waveSpawner != null)
+            waveSpawner.StartWaves();
 
         // Play gameplay music
         if (AudioManager.Instance != null)
@@ -124,7 +132,7 @@ public class GameManager : MonoBehaviour
             finalScoreText.text = "Final Score: " + currentScore;
 
         if (finalKillsText != null)
-            finalKillsText.text = string.Format("Enemies Killed: {0}/{1}", enemiesKilled, totalEnemies);
+            finalKillsText.text = "Enemies Killed: " + enemiesKilled;
 
         // Play game over music/sound
         if (AudioManager.Instance != null)
@@ -134,17 +142,32 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void OnAllWavesCompleted()
+    {
+        WinGame();
+    }
+
     public void WinGame()
     {
-        SetGameState(GameState.Win);
+        Debug.Log($"=== WIN GAME CALLED === enemiesKilled: {enemiesKilled} | Score: {currentScore}");
 
+        if (winUI == null)
+            Debug.LogWarning("GameManager: winUI n'est pas assigné dans l'Inspector!");
+        if (winScoreText == null)
+            Debug.LogWarning("GameManager: winScoreText n'est pas assigné dans l'Inspector!");
+        if (winKillsText == null)
+            Debug.LogWarning("GameManager: winKillsText n'est pas assigné dans l'Inspector!");
+
+        // Mettre à jour les textes AVANT de changer l'état (pour qu'ils soient prêts)
         if (winScoreText != null)
             winScoreText.text = "Final Score: " + currentScore;
 
         if (winKillsText != null)
-            winKillsText.text = string.Format("Enemies Killed: {0}/{1}", enemiesKilled, totalEnemies);
+            winKillsText.text = "Enemies Killed: " + enemiesKilled;
 
-        Debug.Log($"Victory! Final Score: {currentScore} | Enemies Killed: {enemiesKilled}/{totalEnemies}");
+        SetGameState(GameState.Win);
+
+        Debug.Log($"Victory! Final Score: {currentScore} | Enemies Killed: {enemiesKilled}");
 
         // Play victory music/sound (you can add a PlayVictoryMusic method in AudioManager)
         if (AudioManager.Instance != null)
@@ -191,7 +214,7 @@ public class GameManager : MonoBehaviour
     // Public getters
     public int GetScore() => currentScore;
     public int GetEnemiesKilled() => enemiesKilled;
-    public int GetTotalEnemies() => totalEnemies;
+    public WaveSpawner GetWaveSpawner() => waveSpawner;
     public bool IsGameActive() => gameState == GameState.Playing;
     public bool HasWon() => gameState == GameState.Win;
 }

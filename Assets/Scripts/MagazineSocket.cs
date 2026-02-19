@@ -77,6 +77,13 @@ public class MagazineSocket : MonoBehaviour
         currentMagazine = insertedObject;
         hasMagazine = true;
 
+        // Passer les colliders du mag en trigger pour ne pas bloquer le joueur
+        // Le socket garde sa sélection avec des triggers, mais le CharacterController les traverse
+        foreach (Collider col in currentMagazine.GetComponentsInChildren<Collider>())
+        {
+            col.isTrigger = true;
+        }
+
         // Jouer le son d'insertion
         PlaySound(insertSound);
 
@@ -93,11 +100,18 @@ public class MagazineSocket : MonoBehaviour
     {
         Debug.Log($"❌ Chargeur éjecté: {currentMagazine?.name ?? "Inconnu"}");
 
+        // Remettre les colliders du mag en non-trigger pour le grab et la physique
+        if (currentMagazine != null)
+        {
+            foreach (Collider col in currentMagazine.GetComponentsInChildren<Collider>())
+            {
+                col.isTrigger = false;
+            }
+        }
+
         GameObject ejectedMagazine = currentMagazine;
         currentMagazine = null;
         hasMagazine = false;
-
-        // L'ignore collision avec le joueur reste actif
 
         // Jouer le son d'éjection
         PlaySound(ejectSound);

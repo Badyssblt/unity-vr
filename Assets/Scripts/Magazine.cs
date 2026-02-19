@@ -58,12 +58,6 @@ public class Magazine : MonoBehaviour
     {
         isInserted = true;
 
-        // Désactiver l'interaction
-        if (grabInteractable != null)
-        {
-            grabInteractable.enabled = false;
-        }
-
         // Attacher au point d'attache de l'arme
         transform.SetParent(attachPoint);
         transform.localPosition = Vector3.zero;
@@ -76,11 +70,8 @@ public class Magazine : MonoBehaviour
             rb.useGravity = false;
         }
 
-        // Désactiver les colliders pour éviter les interférences
-        foreach (Collider col in colliders)
-        {
-            col.enabled = false;
-        }
+        // Garder grabInteractable et colliders actifs pour pouvoir retirer le chargeur
+        // MagazineSocket met déjà les colliders en trigger pour éviter les collisions
 
         Debug.Log($"📥 Chargeur inséré avec {ammoCount} munitions");
     }
@@ -108,7 +99,7 @@ public class Magazine : MonoBehaviour
             rb.useGravity = true;
         }
 
-        // Réactiver les colliders
+        // Réactiver les colliders pour pouvoir grab le mag
         foreach (Collider col in colliders)
         {
             col.enabled = true;
