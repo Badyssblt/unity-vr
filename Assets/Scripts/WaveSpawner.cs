@@ -9,7 +9,7 @@ public class WaveSpawner : MonoBehaviour
 
     [Header("Wave Settings")]
     [SerializeField] private int enemiesPerWaveBase = 3;
-    [SerializeField] private int enemiesIncreasePerWave = 2;
+    [SerializeField] private int enemiesIncreasePerWave = 1;
     [SerializeField] private float timeBetweenWaves = 5f;
     [SerializeField] private float timeBetweenSpawns = 0.5f;
     [SerializeField] private int maxWaves = 5;
@@ -54,6 +54,10 @@ public class WaveSpawner : MonoBehaviour
         }
 
         isSpawning = false;
+
+        // Cas où tous les ennemis ont été tués pendant le spawn
+        if (enemiesAliveInWave <= 0)
+            CompleteWave();
     }
 
     void SpawnEnemy()
@@ -84,22 +88,22 @@ public class WaveSpawner : MonoBehaviour
         Debug.Log($"Ennemi tué dans la vague {currentWave}. Restants: {enemiesAliveInWave}");
 
         if (enemiesAliveInWave <= 0 && !isSpawning)
-        {
-            // Heal le joueur à la fin de chaque vague
-            HealPlayer();
+            CompleteWave();
+    }
 
-            if (currentWave >= maxWaves)
-            {
-                // Toutes les vagues terminées
-                Debug.Log("=== Toutes les vagues sont terminées! ===");
-                if (GameManager.Instance != null)
-                    GameManager.Instance.OnAllWavesCompleted();
-            }
-            else
-            {
-                // Lancer la prochaine vague après un délai
-                StartCoroutine(StartNextWaveAfterDelay());
-            }
+    void CompleteWave()
+    {
+        HealPlayer();
+
+        if (currentWave >= maxWaves)
+        {
+            Debug.Log("=== Toutes les vagues sont terminées! ===");
+            if (GameManager.Instance != null)
+                GameManager.Instance.OnAllWavesCompleted();
+        }
+        else
+        {
+            StartCoroutine(StartNextWaveAfterDelay());
         }
     }
 

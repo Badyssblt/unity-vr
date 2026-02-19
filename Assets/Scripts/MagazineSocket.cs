@@ -113,6 +113,10 @@ public class MagazineSocket : MonoBehaviour
         currentMagazine = null;
         hasMagazine = false;
 
+        // Détacher le magazine après un frame (le XR Toolkit finit son traitement avant)
+        if (ejectedMagazine != null)
+            StartCoroutine(DetachMagazineNextFrame(ejectedMagazine));
+
         // Jouer le son d'éjection
         PlaySound(ejectSound);
 
@@ -121,6 +125,39 @@ public class MagazineSocket : MonoBehaviour
 
         // Déclencher l'événement
         onMagazineEjected?.Invoke();
+    }
+
+    /// <summary>
+    /// Désactive le socket, détache le magazine et réactive le socket après un délai.
+    /// Sans ça, le socket re-grab immédiatement le magazine éjecté.
+    /// </summary>
+    System.Collections.IEnumerator DetachMagazineNextFrame(GameObject magazine)
+    {
+        // Désactiver le socket AVANT le yield pour bloquer le re-grab immédiat
+        if (socketInteractor != null)
+            socketInteractor.enabled = false;
+
+        yield return null; // attendre que le XR Toolkit finisse son SelectExit
+
+        if (magazine != null)
+        {
+            magazine.transform.SetParent(null);
+
+            Rigidbody rb = magazine.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.isKinematic = false;
+                rb.useGravity = true;
+                rb.velocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.AddForce(Vector3.down * 2f, ForceMode.Impulse);
+            }
+        }
+
+        // Réactiver le socket après 1s pour pouvoir insérer un nouveau chargeur
+        yield return new WaitForSeconds(1f);
+        if (socketInteractor != null)
+            socketInteractor.enabled = true;
     }
 
     /// <summary>

@@ -195,7 +195,7 @@ MonoBehaviour:
   onRevive:
     m_PersistentCalls:
       m_Calls: []
-  showDebugLogs: 1
+  showDebugLogs: 0
 --- !u!114 &2713593117151343133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -225,7 +225,7 @@ MonoBehaviour:
   animator: {fileID: 0}
   autoFindAnimator: 1
   showDebugGizmos: 1
-  showDebugLogs: 1
+  showDebugLogs: 0
 --- !u!114 &7255869186734850659
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,10 +239,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   weaponController: {fileID: 2256137317379348061}
-  accuracy: 0.8
-  maxSpreadAngle: 10
+  accuracy: 0.2
+  maxSpreadAngle: 40
   aimHeightOffset: 1.5
-  autoReload: 1
+  autoReload: 0
   unlimitedAmmo: 0
   showDebugLogs: 0
 --- !u!114 &7328975542746633757
@@ -692,7 +692,7 @@ PrefabInstance:
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
       propertyPath: fireMode
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
@@ -763,6 +763,11 @@ PrefabInstance:
         type: 3}
       propertyPath: requireBothTriggers
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
+      propertyPath: ejectMagazineAction.m_Action.m_Name
+      value: Eject Magazine
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}

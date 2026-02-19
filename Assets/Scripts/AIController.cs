@@ -297,7 +297,6 @@ public class AIController : MonoBehaviour
         // Vérifier la distance
         if (distanceToPlayer > detectionRange)
         {
-            if (showDebugLogs) Debug.Log($"🔍 {gameObject.name}: Joueur trop loin ({distanceToPlayer:F1}m > {detectionRange}m)");
             return false;
         }
 

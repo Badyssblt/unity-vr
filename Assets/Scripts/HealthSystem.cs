@@ -27,6 +27,7 @@ public class HealthSystem : MonoBehaviour
 
     // Track last hit type for death animation
     private bool lastHitWasHeadshot = false;
+    private bool isDead = false;
 
     public float CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
@@ -121,9 +122,12 @@ public class HealthSystem : MonoBehaviour
     /// </summary>
     void Die()
     {
+        if (isDead) return; // Empêche Die() de se déclencher plusieurs fois
+        isDead = true;
+
         if (showDebugLogs)
         {
-            string deathType = lastHitWasHeadshot ? "HEADSHOT 🎯" : "bodyshot";
+            string deathType = lastHitWasHeadshot ? "HEADSHOT \U0001f3af" : "bodyshot";
             Debug.Log($"💀 {gameObject.name} est mort! ({deathType})");
         }
 

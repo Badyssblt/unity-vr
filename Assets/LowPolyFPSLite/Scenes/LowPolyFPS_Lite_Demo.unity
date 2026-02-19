@@ -2321,6 +2321,11 @@ PrefabInstance:
       objectReference: {fileID: 8300000, guid: 859d541cf07db3a498b0bec3d4f0a3c6, type: 3}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
+      propertyPath: useHaptics
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
       propertyPath: useRaycast
       value: 1
       objectReference: {fileID: 0}
@@ -2392,7 +2397,7 @@ PrefabInstance:
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
       propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
@@ -2446,12 +2451,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
+      propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.data[1].m_Id
+      value: c8416518-1a66-46c3-a7c5-61b4a114e5dd
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
       propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.data[0].m_Path
-      value: <XRSimulatedController>{RightHand}/secondaryButton
+      value: <XRController>{LeftHand}/{PrimaryButton}
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
+      propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.data[1].m_Path
+      value: <Keyboard>/b
       objectReference: {fileID: 0}
     - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
         type: 3}
       propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.data[0].m_Action
+      value: Eject Magazine
+      objectReference: {fileID: 0}
+    - target: {fileID: 7761118942159957055, guid: ee329c3cd08e58645834d20702d7f6c6,
+        type: 3}
+      propertyPath: ejectMagazineAction.m_Action.m_SingletonActionBindings.Array.data[1].m_Action
       value: Eject Magazine
       objectReference: {fileID: 0}
     - target: {fileID: 7915725348434359094, guid: ee329c3cd08e58645834d20702d7f6c6,
@@ -4829,7 +4849,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 540642797}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.0000049966}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4840,8 +4860,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -0.00012207031, y: -0.000030517578}
+  m_SizeDelta: {x: 505.2, y: 305.4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &540642799
 MonoBehaviour:
@@ -10665,6 +10685,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5514109080623690904, guid: 1092a1f5a5102e44989ab1b68db26ab3,
+        type: 3}
+      propertyPath: isInvulnerable
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5627586467956821298, guid: 1092a1f5a5102e44989ab1b68db26ab3,
         type: 3}
       propertyPath: m_Layer
@@ -12957,7 +12982,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1129698856}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12965,7 +12990,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -83}
+  m_AnchoredPosition: {x: -4, y: -350}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1129698858
@@ -15514,7 +15539,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1445748682}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0.000005648882}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -15522,7 +15547,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -15}
+  m_AnchoredPosition: {x: -4.000013, y: -282.00003}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1445748684
@@ -19045,7 +19070,7 @@ MonoBehaviour:
   waveText: {fileID: 0}
   finalScoreText: {fileID: 8132683409692083526}
   finalKillsText: {fileID: 0}
-  winScoreText: {fileID: 0}
+  winScoreText: {fileID: 1129698858}
   winKillsText: {fileID: 0}
   crosshairUI: {fileID: 0}
 --- !u!4 &1802198196
@@ -19080,11 +19105,11 @@ MonoBehaviour:
   spawnPoints:
   - {fileID: 1389232460}
   - {fileID: 716085425}
-  enemiesPerWaveBase: 3
+  enemiesPerWaveBase: 1
   enemiesIncreasePerWave: 1
   timeBetweenWaves: 5
   timeBetweenSpawns: 0.5
-  maxWaves: 3
+  maxWaves: 5
 --- !u!1001 &1803378847
 PrefabInstance:
   m_ObjectHideFlags: 0

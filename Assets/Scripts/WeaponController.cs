@@ -18,6 +18,7 @@ public class WeaponController : MonoBehaviour
     [SerializeField] private float fireRateFullAuto = 0.1f;  // Temps entre chaque tir en full-auto (mitraillette!)
     [SerializeField] private float reloadTime = 2f;
     [SerializeField] private float damage = 25f; // Dégâts de base de l'arme
+    [SerializeField] private float enemyDamageMultiplier = 0.4f; // Multiplicateur de dégâts pour les ennemis (0.4 = 10 dégâts)
     [SerializeField] private string ownerTeam = "Player"; // "Player" ou "Enemy"
 
     public enum FireMode
@@ -103,6 +104,7 @@ public class WeaponController : MonoBehaviour
         if (aiController != null)
         {
             ownerTeam = "Enemy";
+            damage *= enemyDamageMultiplier; // Réduire les dégâts des ennemis
             // Désactiver les références UI pour les ennemis
             currentAmmoText = null;
             maxAmmoText = null;
@@ -182,7 +184,12 @@ public class WeaponController : MonoBehaviour
         if (ejectMagazineAction.action != null)
         {
             ejectMagazineAction.action.Enable();
-            Debug.Log($"✅ Eject Magazine Action activée: {ejectMagazineAction.action.name}");
+            ejectMagazineAction.action.performed += OnEjectMagazinePerformed;
+            Debug.Log($"✅ Eject Magazine Action activée: {ejectMagazineAction.action.name} | Bindings: {ejectMagazineAction.action.bindings.Count}");
+        }
+        else
+        {
+            Debug.LogError("❌ ejectMagazineAction.action est NULL ! Assigne l'action dans l'Inspector.");
         }
     }
 
@@ -315,21 +322,20 @@ public class WeaponController : MonoBehaviour
         TriggerHaptic(0.1f, 0.05f);
     }
 
+    void OnEjectMagazinePerformed(UnityEngine.InputSystem.InputAction.CallbackContext ctx)
+    {
+        if (!useVRReload || magazineSocket == null) return;
+        if (grabInteractable != null && !grabInteractable.isSelected) return;
+
+        if (magazineSocket.HasMagazine())
+        {
+            magazineSocket.EjectMagazine();
+            Debug.Log("🔓 Chargeur éjecté via Bouton B!");
+        }
+    }
+
     void Update()
     {
-        // Éjection du chargeur avec le Bouton B
-        if (useVRReload && magazineSocket != null && grabInteractable != null && grabInteractable.isSelected)
-        {
-            if (ejectMagazineAction.action != null && ejectMagazineAction.action.WasPerformedThisFrame())
-            {
-                if (magazineSocket.HasMagazine())
-                {
-                    magazineSocket.EjectMagazine();
-                    Debug.Log("🔓 Chargeur éjecté via Bouton B!");
-                }
-            }
-        }
-
         // Only allow shooting when weapon is grabbed
         if (grabInteractable != null && grabInteractable.isSelected)
         {
@@ -782,6 +788,12 @@ public class WeaponController : MonoBehaviour
         {
             magazineSocket.onMagazineInserted.RemoveListener(OnMagazineInserted);
             magazineSocket.onMagazineEjected.RemoveListener(OnMagazineEjected);
+        }
+
+        // Se désabonner de l'action d'éjection
+        if (ejectMagazineAction.action != null)
+        {
+            ejectMagazineAction.action.performed -= OnEjectMagazinePerformed;
         }
     }
 
